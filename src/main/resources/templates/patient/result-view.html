@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis Result - LabSync</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" th:href="@{/css/custom.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .result-table th {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+        .result-table td {
+            border: 1px solid #dee2e6;
+            padding: 12px;
+        }
+        .result-table tbody tr {
+            background-color: white;
+        }
+        .category-header {
+            background-color: #e9ecef;
+            font-weight: 600;
+            padding: 10px 12px;
+            border: 1px solid #dee2e6;
+            border-bottom: 2px solid #dee2e6;
+        }
+    </style>
+</head>
+<body class="bg-light">
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="d-flex align-items-center gap-3">
+            <a th:href="@{/patient}" class="btn btn-secondary">Go Back to Dashboard</a>
+            <h2 class="mb-0">Analysis Result</h2>
+        </div>
+    </div>
+    
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5 class="card-title">Examination Information</h5>
+            <p><strong>Examination Type:</strong> <span th:text="${result.analysisOrder.examinationType.name}"></span></p>
+            <p><strong>Ordered At:</strong> <span th:text="${#temporals.format(result.analysisOrder.orderedAt, 'dd/MM/yyyy HH:mm')}"></span></p>
+            <p th:if="${result.labTech}"><strong>Lab Technician:</strong> <span th:text="${result.labTech.firstName + ' ' + result.labTech.lastName}"></span></p>
+        </div>
+    </div>
+    
+    <!-- Template-based results (multiple fields) -->
+    <div th:if="${result.resultFields != null && !result.resultFields.isEmpty()}" class="card mb-3">
+        <div class="card-body p-0">
+            <table class="result-table">
+                <thead>
+                    <tr>
+                        <th style="width: 40%;">Test</th>
+                        <th style="width: 30%;">Results</th>
+                        <th style="width: 30%;">Reference Range</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="field : ${result.resultFields}">
+                        <td><strong th:text="${field.fieldName}"></strong></td>
+                        <td>
+                            <span th:text="${field.resultValue}"></span>
+                            <span th:if="${field.unit != null && !field.unit.isEmpty()}" 
+                                  class="text-muted" 
+                                  th:text="' ' + ${field.unit}"></span>
+                        </td>
+                        <td th:text="${field.referenceRange != null && !field.referenceRange.isEmpty() ? field.referenceRange : 'N/A'}"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Legacy single-field result (fallback) -->
+    <div th:if="${result.resultFields == null || result.resultFields.isEmpty()}" class="card mb-3">
+        <div class="card-body p-0">
+            <table class="result-table">
+                <thead>
+                    <tr>
+                        <th style="width: 40%;">Test</th>
+                        <th style="width: 30%;">Results</th>
+                        <th style="width: 30%;">Reference Range</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong th:text="${result.analysisOrder.examinationType.name}"></strong></td>
+                        <td>
+                            <span th:text="${result.resultData != null ? result.resultData : 'N/A'}"></span>
+                            <span th:if="${result.unit != null && !result.unit.isEmpty()}" 
+                                  class="text-muted" 
+                                  th:text="' ' + ${result.unit}"></span>
+                        </td>
+                        <td th:text="${result.referenceRange != null && !result.referenceRange.isEmpty() ? result.referenceRange : 'N/A'}"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="card mb-3" th:if="${result.comment != null && !result.comment.isEmpty()}">
+        <div class="card-body">
+            <h5 class="card-title">Lab Technician Comment</h5>
+            <p th:text="${result.comment}"></p>
+        </div>
+    </div>
+    
+    <div class="card mb-3" th:if="${result.doctorNotes != null && !result.doctorNotes.isEmpty()}">
+        <div class="card-body">
+            <h5 class="card-title">Doctor's Notes</h5>
+            <p th:text="${result.doctorNotes}"></p>
+        </div>
+    </div>
+    
+    <div class="mt-3">
+        <a th:href="@{/patient/results}" class="btn btn-secondary">Back to My Results</a>
+    </div>
+</div>
+</body>
+</html>

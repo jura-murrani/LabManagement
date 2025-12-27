@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Form - LabSync</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" th:href="@{/css/custom.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        function calculateAge() {
+            const birthDateInput = document.getElementById('birthDate');
+            const ageDisplay = document.getElementById('yearsOld');
+            if (birthDateInput.value) {
+                const birthDate = new Date(birthDateInput.value);
+                const today = new Date();
+                let age = today.getFullYear() - birthDate.getFullYear();
+                const monthDiff = today.getMonth() - birthDate.getMonth();
+                if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                    age--;
+                }
+                ageDisplay.textContent = age + ' years old';
+                ageDisplay.style.display = 'inline';
+            } else {
+                ageDisplay.style.display = 'none';
+            }
+        }
+    </script>
+</head>
+<body class="bg-light">
+<div class="container mt-4">
+    <h2 class="page-title" th:text="${patientForm.id != null ? '✏️ Edit Patient' : '➕ Register New Patient'}"><i class="fas fa-user-injured me-2"></i>Patient Form</h2>
+    
+    <form th:action="@{/patients/save}" th:object="${patientForm}" method="post" class="mt-4">
+        <input type="hidden" th:field="*{id}"/>
+        
+        <div th:if="${#fields.hasErrors('*')}" class="alert alert-danger">
+            <ul>
+                <li th:each="err : ${#fields.errors('*')}" th:text="${err}"></li>
+            </ul>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="firstName" class="form-label">First Name *</label>
+                <input type="text" class="form-control" id="firstName" th:field="*{firstName}" required/>
+                <span th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}" class="text-danger"></span>
+            </div>
+            
+            <div class="col-md-6 mb-3">
+                <label for="fathersName" class="form-label">Father's Name *</label>
+                <input type="text" class="form-control" id="fathersName" th:field="*{fathersName}" required/>
+                <span th:if="${#fields.hasErrors('fathersName')}" th:errors="*{fathersName}" class="text-danger"></span>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="lastName" class="form-label">Last Name *</label>
+                <input type="text" class="form-control" id="lastName" th:field="*{lastName}" required/>
+                <span th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}" class="text-danger"></span>
+            </div>
+            
+            <div class="col-md-6 mb-3">
+                <label for="idNumber" class="form-label">ID Number *</label>
+                <input type="text" class="form-control" id="idNumber" th:field="*{idNumber}" required/>
+                <span th:if="${#fields.hasErrors('idNumber')}" th:errors="*{idNumber}" class="text-danger"></span>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="birthDate" class="form-label">Birth Date *</label>
+                <input type="date" class="form-control" id="birthDate" th:field="*{birthDate}" 
+                       onchange="calculateAge()" required/>
+                <span th:if="${#fields.hasErrors('birthDate')}" th:errors="*{birthDate}" class="text-danger"></span>
+                <div id="yearsOld" class="text-muted mt-1" style="display: none;"></div>
+                <div th:if="${patient != null && patient.birthDate != null}" class="text-muted mt-1">
+                    <span th:text="${patient.yearsOld + ' years old'}"></span>
+                </div>
+            </div>
+            
+            <div class="col-md-6 mb-3">
+                <label for="gender" class="form-label">Gender *</label>
+                <select class="form-control" id="gender" th:field="*{gender}" required>
+                    <option value="">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                </select>
+                <span th:if="${#fields.hasErrors('gender')}" th:errors="*{gender}" class="text-danger"></span>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="email" class="form-label">Email *</label>
+                <input type="email" class="form-control" id="email" th:field="*{email}" required/>
+                <span th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="text-danger"></span>
+            </div>
+            
+            <div class="col-md-6 mb-3">
+                <label for="phone" class="form-label">Phone Number *</label>
+                <input type="text" class="form-control" id="phone" th:field="*{phone}" required/>
+                <span th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}" class="text-danger"></span>
+            </div>
+        </div>
+        
+        <div th:if="${patientForm.id == null}" class="row">
+            <div class="col-md-6 mb-3">
+                <label for="username" class="form-label">Username *</label>
+                <input type="text" class="form-control" id="username" th:field="*{username}" required/>
+                <span th:if="${#fields.hasErrors('username')}" th:errors="*{username}" class="text-danger"></span>
+            </div>
+            
+            <div class="col-md-6 mb-3">
+                <label for="password" class="form-label">Password *</label>
+                <input type="password" class="form-control" id="password" th:field="*{password}" required/>
+                <span th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="text-danger"></span>
+            </div>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Save Patient</button>
+        <a th:href="@{/patients}" class="btn btn-secondary">Cancel</a>
+        <a th:href="@{/admin/dashboard}" class="btn btn-secondary">Go Back to Dashboard</a>
+    </form>
+</div>
+</body>
+</html>
+

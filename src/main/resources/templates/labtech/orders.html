@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis Orders - LabSync</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" th:href="@{/css/custom.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .test-results-header {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #0d6efd;
+            margin-bottom: 2rem;
+        }
+        .patient-info-box {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        .result-table th {
+            background-color: #0d6efd;
+            color: white;
+            border: 1px solid #dee2e6;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+        .result-table td {
+            border: 1px solid #dee2e6;
+            padding: 12px;
+            background-color: white;
+        }
+        .category-header {
+            background-color: #e9ecef;
+            font-weight: 600;
+            padding: 10px 12px;
+            border: 1px solid #dee2e6;
+        }
+        .test-result-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body class="bg-light">
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="d-flex align-items-center gap-3">
+            <a th:href="@{/labtech/dashboard}" class="btn btn-secondary">Go Back</a>
+            <span class="title-pill"></span>
+            <div>
+                <h2 class="page-title mb-0"><i class="fas fa-vials me-2"></i>Analysis Orders</h2>
+                <p class="text-muted mb-0" th:if="${labTech != null}">
+                    Lab Technician: <strong th:text="${labTech.firstName + ' ' + labTech.lastName}"></strong>
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <div th:if="${param.submitted}" class="alert alert-success">
+        Result submitted successfully!
+    </div>
+    
+    <!-- Search Filter -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" th:action="@{/labtech/orders}">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label for="searchName" class="form-label">Search by Name or Lastname</label>
+                        <input type="text" class="form-control" id="searchName" name="search" 
+                               th:value="${param.search != null ? param.search[0] : ''}" 
+                               placeholder="Enter name or lastname">
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100">Search</button>
+                    </div>
+                    <div class="col-md-2">
+                        <a th:href="@{/labtech/orders}" class="btn btn-secondary w-100">Clear</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Section 1: Not Completed Orders -->
+    <div class="card mb-4">
+        <div class="card-header bg-warning text-dark">
+            <h5 class="mb-0">Analysis Not Completed</h5>
+        </div>
+        <div class="card-body">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th><i class="fas fa-hashtag me-2"></i>ID</th>
+                        <th><i class="fas fa-user me-2"></i>Patient</th>
+                        <th><i class="fas fa-flask me-2"></i>Examination</th>
+                        <th><i class="fas fa-clock me-2"></i>Ordered</th>
+                        <th><i class="fas fa-ellipsis-h me-2"></i>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="order : ${notCompletedOrders}">
+                        <td th:text="${order.id}"></td>
+                        <td th:text="${order.patient != null ? order.patient.firstName + ' ' + order.patient.lastName : 'N/A'}"></td>
+                        <td th:text="${order.examinationType != null ? order.examinationType.name : 'N/A'}"></td>
+                        <td th:text="${order.orderedAt != null ? #temporals.format(order.orderedAt, 'dd/MM/yyyy HH:mm') : 'N/A'}"></td>
+                        <td>
+                            <a th:href="@{/labtech/orders/{id}/result(id=${order.id})}" class="btn btn-sm btn-primary">Submit Result</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div th:if="${#lists.isEmpty(notCompletedOrders)}" class="alert alert-info mb-0">
+                No pending orders at this time.
+            </div>
+        </div>
+    </div>
+    
+    <!-- Section 2: Completed Orders -->
+    <div class="card mb-4">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0">Completed Analysis</h5>
+                        </div>
+        <div class="card-body">
+            <table class="table table-striped">
+                            <thead>
+                                <tr>
+                        <th><i class="fas fa-hashtag me-2"></i>ID</th>
+                        <th><i class="fas fa-user me-2"></i>Patient</th>
+                        <th><i class="fas fa-flask me-2"></i>Examination</th>
+                        <th><i class="fas fa-calendar-check me-2"></i>Completed</th>
+                        <th><i class="fas fa-badge-check me-2"></i>Status</th>
+                        <th><i class="fas fa-ellipsis-h me-2"></i>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    <tr th:each="order : ${completedOrders}">
+                        <td th:text="${order.id}"></td>
+                        <td th:text="${order.patient != null ? order.patient.firstName + ' ' + order.patient.lastName : 'N/A'}"></td>
+                        <td th:text="${order.examinationType != null ? order.examinationType.name : 'N/A'}"></td>
+                        <td th:text="${order.completedAt != null ? #temporals.format(order.completedAt, 'dd/MM/yyyy HH:mm') : 'N/A'}"></td>
+                                    <td>
+                            <span class="badge bg-success">Completed</span>
+                                    </td>
+                                    <td>
+                            <a th:if="${orderResults != null && orderResults.get(order.id) != null}" 
+                               th:href="@{/labtech/orders/{id}/preview(id=${order.id})}" 
+                               class="btn btn-sm btn-info">Preview</a>
+                            <span th:if="${orderResults == null || orderResults.get(order.id) == null}" class="text-muted">No result</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+            <div th:if="${#lists.isEmpty(completedOrders)}" class="alert alert-info mb-0">
+            No completed orders at this time.
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+
